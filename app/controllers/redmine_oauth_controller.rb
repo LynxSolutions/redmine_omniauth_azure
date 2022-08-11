@@ -1,6 +1,7 @@
 require 'account_controller'
 require 'json'
 require 'jwt'
+require 'i18n'
 
 class RedmineOauthController < AccountController
   include Helpers::MailHelper
@@ -21,6 +22,11 @@ class RedmineOauthController < AccountController
     else
       token = oauth_client.auth_code.get_token(params['code'], :redirect_uri => oauth_azure_callback_url, :resource => "00000002-0000-0000-c000-000000000000")
       user_info = JWT.decode(token.token, nil, false)
+
+      user_info.first['family_name'] = I18n.transliterate(user_info.first['family_name'])
+      user_info.first['given_name'] = I18n.transliterate(user_info.first['given_name'])
+      user_info.first['name'] = I18n.transliterate(user_info.first['name'])
+
       logger.error user_info
       
       email = user_info.first['unique_name']
